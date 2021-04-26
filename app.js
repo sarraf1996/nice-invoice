@@ -5,8 +5,8 @@ let niceInvoice = (invoice, path) => {
   let doc = new PDFDocument({ size: "A4", margin: 40 });
 
   header(doc, invoice);
-  customerInformation(doc, invoice);
-  invoiceTable(doc, invoice);
+  const customerInformationBottomHr = customerInformation(doc, invoice);
+  invoiceTable(doc, invoice, customerInformationBottomHr);
   footer(doc, invoice);
 
   doc.end();
@@ -14,211 +14,236 @@ let niceInvoice = (invoice, path) => {
 }
 
 let header = (doc, invoice) => {
-
-    if (fs.existsSync(invoice.header.company_logo)) {
-      doc.image(invoice.header.company_logo, 50, 45, { width: 50 })
-      .fontSize(20)
-      .text(invoice.header.company_name, 110, 57)
-      .moveDown();
-    }else{
-      doc.fontSize(20)
-      .text(invoice.header.company_name, 50, 45)
-      .moveDown()
+    if (fs.existsSync(invoice.header.companyLogo)) {
+        doc.image(invoice.header.companyLogo, 50, 45, { width: 50 })
+        .fontSize(20)
+        .text(invoice.header.companyName, 110, 57)
+	    .fontSize(9)
+	    .text(invoice.header.companyRegisteredMobile, 110, 77)
+	    .fontSize(10)
+	    .text(invoice.header.bookingId, 200, 67, { align: "right" })
+        .moveDown();
     }
-
-    if(invoice.header.company_address.length!==0){
-      companyAddress(doc, invoice.header.company_address);
+	else {
+		doc.fontSize(20)
+		.text(invoice.header.companyName, 50, 45)
+		.fontSize(9)
+		.text(invoice.header.companyRegisteredMobile, 50, 65)
+		.fontSize(10)
+		.text(invoice.header.bookingId, 200, 55, { align: "right" })
+		.moveDown();
     }
-    
 }
 
-let customerInformation = (doc, invoice)=>{
-  doc
-    .fillColor("#444444")
+let customerInformation = (doc, invoice) => {
+    doc.fillColor("#444444")
     .fontSize(20)
     .text("Invoice", 50, 160);
 
-  generateHr(doc, 185);
+    generateHr(doc, 185);
 
-  const customerInformationTop = 200;
+    let customerInformationLeftTop = 200, customerInformationRightTop = 200;
 
     doc.fontSize(10)
-    .text("Invoice Number:", 50, customerInformationTop)
+	.font("Helvetica")
+    .text("Invoice Id:", 50, customerInformationLeftTop)
     .font("Helvetica-Bold")
-    .text(invoice.order_number, 150, customerInformationTop)
-    .font("Helvetica")
-    .text("Billing Date:", 50, customerInformationTop + 15)
-    .text(invoice.date.billing_date, 150, customerInformationTop + 15)
-    .text("Due Date:", 50, customerInformationTop + 30)
-    .text(invoice.date.due_date,150,customerInformationTop + 30)
+    .text(invoice.invoiceId, 150, customerInformationLeftTop);
+	customerInformationLeftTop = incrementCustomerInformationTop(customerInformationLeftTop);
+    doc.font("Helvetica")
+    .text("Billing Date:", 50, customerInformationLeftTop)
+    .text(invoice.billingDate, 150, customerInformationLeftTop);
+	customerInformationLeftTop = incrementCustomerInformationTop(customerInformationLeftTop);
+	doc.font("Helvetica")
+    .text("Customer Name:", 50, customerInformationLeftTop)
+    .text(invoice.customerName, 150, customerInformationLeftTop);
+	customerInformationLeftTop = incrementCustomerInformationTop(customerInformationLeftTop);
+	doc.font("Helvetica")
+	.text("Customer Mobile:", 50, customerInformationLeftTop)
+    .text(invoice.customerMobile, 150, customerInformationLeftTop);
+	customerInformationLeftTop = incrementCustomerInformationTop(customerInformationLeftTop);
+	doc.font("Helvetica")
+	.text("Executive Name:", 50, customerInformationLeftTop)
+    .text(invoice.executiveName, 150, customerInformationLeftTop);
+	customerInformationLeftTop = incrementCustomerInformationTop(customerInformationLeftTop);
+	doc.font("Helvetica")
+	.text("Service Type:", 50, customerInformationLeftTop)
+    .text(invoice.serviceType, 150, customerInformationLeftTop);
+	customerInformationLeftTop = incrementCustomerInformationTop(customerInformationLeftTop);
+	doc.font("Helvetica")
+	.text("Service Fixed Price:", 50, customerInformationLeftTop)
+	.font("Helvetica-Bold")
+    .text(invoice.serviceFixedPrice, 150, customerInformationLeftTop);
+	customerInformationLeftTop = incrementCustomerInformationTop(customerInformationLeftTop);
 
-    .font("Helvetica-Bold")
-    .text(invoice.shipping.name, 300, customerInformationTop)
-    .font("Helvetica")
-    .text(invoice.shipping.address, 300, customerInformationTop + 15)
-    .text(
-      invoice.shipping.city +
-        ", " +
-        invoice.shipping.state +
-        ", " +
-        invoice.shipping.country,
-      300,
-      customerInformationTop + 30
-    )
-    .moveDown();
+	doc.font("Helvetica")
+	.text("Vehicle Type:", 300, customerInformationRightTop)
+    .text(invoice.vehicleType, 425, customerInformationRightTop);
+	customerInformationRightTop = incrementCustomerInformationTop(customerInformationRightTop);
+	if (invoice.vehicleNumber) {
+		doc.font("Helvetica")
+		.text("Vehicle Number:", 300, customerInformationRightTop)
+		.text(invoice.vehicleNumber, 425, customerInformationRightTop);
+		customerInformationRightTop = incrementCustomerInformationTop(customerInformationRightTop);
+	}
+    doc.font("Helvetica")
+	.text("Vehicle Brand:", 300, customerInformationRightTop)
+    .text(invoice.vehicleBrand, 425, customerInformationRightTop);
+	customerInformationRightTop = incrementCustomerInformationTop(customerInformationRightTop);
+	doc.font("Helvetica")
+	.text("Vehicle Model:", 300, customerInformationRightTop)
+    .text(invoice.vehicleModel, 425, customerInformationRightTop);
+	customerInformationRightTop = incrementCustomerInformationTop(customerInformationRightTop);
+	if (invoice.vehicleModelYear) {
+		doc.font("Helvetica")
+		.text("Vehicle Model Year:", 300, customerInformationRightTop)
+		.text(invoice.vehicleModelYear, 425, customerInformationRightTop);
+		customerInformationRightTop = incrementCustomerInformationTop(customerInformationRightTop);
+	}
+	if (invoice.vehicleFuelType) {
+		doc.font("Helvetica")
+		.text("Vehicle Fuel Type:", 300, customerInformationRightTop)
+		.text(invoice.vehicleFuelType, 425, customerInformationRightTop);
+		customerInformationRightTop = incrementCustomerInformationTop(customerInformationRightTop);
+	}
+	doc.font("Helvetica")
+	.text("Overall Overcharge Incur:", 300, customerInformationRightTop)
+	.font("Helvetica-Bold")
+    .text(invoice.isOverallOverchargeIncur, 425, customerInformationRightTop);
+	customerInformationRightTop = incrementCustomerInformationTop(customerInformationRightTop);
+	if (invoice.totalOvercharge > 0) {
+		doc.font("Helvetica")
+		.text("Total Overcharge:", 300, customerInformationRightTop)
+		.font("Helvetica-Bold")
+		.text(`Rs. ${invoice.totalOvercharge}`, 425, customerInformationRightTop);
+		customerInformationRightTop = incrementCustomerInformationTop(customerInformationRightTop);
+	}
+    doc.moveDown();
 
-  generateHr(doc, 252);
+    const maxCustomerInformationTop = customerInformationLeftTop > customerInformationRightTop ? customerInformationLeftTop : customerInformationRightTop;
+    generateHr(doc, maxCustomerInformationTop + 7);
+    return maxCustomerInformationTop + 7;
 }
 
-let invoiceTable = (doc, invoice) => {
-  let i;
-  const invoiceTableTop = 330;
-  const currencySymbol = invoice.currency_symbol;
+let invoiceTable = (doc, invoice, customerInformationBottomHr) => {
+    let invoiceTableTop = customerInformationBottomHr + 78;
 
-  doc.font("Helvetica-Bold");
-  tableRow(
-    doc,
-    invoiceTableTop,
-    "Item",
-    "Description",
-    "Unit Cost",
-    "Quantity",
-    "Total",
-    "Tax"
-  );
-  generateHr(doc, invoiceTableTop + 20);
-  doc.font("Helvetica");
+    doc.font("Helvetica-Bold");
+    tableRow(doc, invoiceTableTop, "Job Card", "Brand", "Grade", "Type", "Unit Cost", "Quantity", "Total", "Overcharge", "Table Header");
+    generateHr(doc, invoiceTableTop + 20);
+    invoiceTableTop = invoiceTableTop + 30;
+    doc.font("Helvetica");
 
-  for (i = 0; i < invoice.items.length; i++) {
-    const item = invoice.items[i];
-    const position = invoiceTableTop + (i + 1) * 30;
-    tableRow(
-      doc,
-      position,
-      item.item,
-      item.description,
-      formatCurrency(item.price, currencySymbol),
-      item.quantity,
-      formatCurrency(applyTaxIfAvailable(item.price, item.quantity, item.tax), currencySymbol), 
-      checkIfTaxAvailable(item.tax)
-    );
+    for (let i = 0; i < invoice.items.length; i++) {
+		const item = invoice.items[i];
+		tableRow(doc, invoiceTableTop, item.jobCard, item.brand, item.grade, item.type, item.unitCost, item.quantity, item.total, item.overcharge, "Table Data");
 
-    generateHr(doc, position + 20);
-  }
-
-  const subtotalPosition = invoiceTableTop + (i + 1) * 30;
-  doc.font("Helvetica-Bold");
-  totalTable(
-    doc,
-    subtotalPosition,
-    "Subtotal",
-    formatCurrency(invoice.total, currencySymbol)
-  );
-
-  const paidToDatePosition = subtotalPosition + 20;
-  doc.font("Helvetica-Bold");
-  totalTable(
-    doc,
-    paidToDatePosition,
-    "Total",
-    formatCurrency(invoice.total, currencySymbol)
-  );
+		if (item.jobCard === "Exterior Body Wash") {
+			generateHr(doc, invoiceTableTop + 32);
+			invoiceTableTop = invoiceTableTop + 42;
+		}
+		else if (item.jobCard === "Interior Body Vacumming & Polishing") {
+			generateHr(doc, invoiceTableTop + 44);
+			invoiceTableTop = invoiceTableTop + 54;
+		}
+		else {
+			generateHr(doc, invoiceTableTop + 20);
+			invoiceTableTop = invoiceTableTop + 30;
+		}
+	}
+	
+    doc.font("Helvetica-Bold");
+	doc.fontSize(10)
+    .text("Subtotal/Estimated", 338, invoiceTableTop, { width: 96, align: "center" })
+    .text(invoice.estimatedPrice, 439, invoiceTableTop, { width: 60, align: "right" });
 }
 
 let footer = (doc, invoice) => {
-  if(invoice.footer.text.length!==0){
-    doc.fontSize(10).text(invoice.footer.text,50,780,{ align: "center", width: 500 });
-  } 
+    if (invoice.footer.text.length !== 0) {
+		doc.fontSize(10)
+		.font("Helvetica")
+		.text(invoice.footer.text, 50, doc.page.height - 52, { align: "center", width: doc.page.width - 100 });
+	}
 }
 
-let totalTable = (
-  doc,
-  y,
-  name,
-  description
-)=>{
-    doc
-    .fontSize(10)
-    .text(name, 400, y,{ width: 90, align: "right" })
-    .text(description, 0, y, { align: "right" })
-}
-
-let tableRow = (
-  doc,
-  y,
-  item,
-  description,
-  unitCost,
-  quantity,
-  lineTotal,
-  tax
-)=>{
-    doc
-    .fontSize(10)
-    .text(item, 50, y)
-    .text(description, 130, y)
-    .text(unitCost, 280, y, { width: 90, align: "right" })
-    .text(quantity, 335, y, { width: 90, align: "right" })
-    .text(lineTotal, 400, y,{ width: 90, align: "right" })
-    .text(tax, 0, y, { align: "right" });
+let tableRow = (doc, y, jobCard, brand, grade, type, unitCost, quantity, total, overcharge, context) => {
+	if (context === "Table Header") {
+		doc.fontSize(10)
+		.text(jobCard, 50, y, { width: 67 })
+		.text(brand, 122, y, { width: 67, align: "center" })
+		.text(grade, 194, y, { width: 67, align: "center" })
+		.text(type, 266, y, { width: 67, align: "center" })
+		.text(unitCost, 338, y, { width: 50, align: "center" })
+		.text(quantity, 393, y, { width: 41, align: "center" })
+		.text(total, 439, y, { width: 40, align: "right" })
+		.text(overcharge, 0, y, { align: "right" });
+	}
+	else {
+		doc.fontSize(10)
+		.text(jobCard, 50, y, { width: 67 });
+		if (brand) {
+			doc.font("Helvetica")
+			.text(brand, 122, y, { width: 67, align: "center" });
+		}
+		else {
+			doc.font("Helvetica")
+			.text("---", 122, y, { width: 67, align: "center" });
+		}
+		if (grade) {
+			doc.font("Helvetica")
+			.text(grade, 194, y, { width: 67, align: "center" });
+		}
+		else {
+			doc.font("Helvetica")
+			.text("---", 194, y, { width: 67, align: "center" });
+		}
+		if (type) {
+			doc.font("Helvetica")
+			.text(type, 266, y, { width: 67, align: "center" });
+		}
+		else {
+			doc.font("Helvetica")
+			.text("---", 266, y, { width: 67, align: "center" });
+		}
+		if (unitCost) {
+			doc.font("Helvetica")
+			.text(unitCost, 338, y, { width: 50, align: "center" });
+		}
+		else {
+			doc.font("Helvetica")
+			.text("---", 338, y, { width: 50, align: "center" });
+		}
+		if (quantity) {
+			doc.font("Helvetica")
+			.text(quantity, 393, y, { width: 41, align: "center" });
+		}
+		else {
+			doc.font("Helvetica")
+			.text("---", 393, y, { width: 41, align: "center" });
+		}
+		doc.font("Helvetica")
+		.text(total, 439, y, { width: 50, align: "right" });
+		if (overcharge > 0) {
+			doc.font("Helvetica")
+			.text(`Rs. ${overcharge}`, 0, y, { align: "right" });
+		}
+		else {
+			doc.font("Helvetica")
+			.text("---", 0, y, { align: "right" });
+		}
+	}
 }
 
 let generateHr = (doc, y) => {
-    doc
-    .strokeColor("#aaaaaa")
+    doc.strokeColor("#aaaaaa")
     .lineWidth(1)
     .moveTo(50, y)
     .lineTo(550, y)
     .stroke();
 }
 
-let formatCurrency = (cents, symbol) => {
-  return symbol + cents.toFixed(2);
-}
-
-let getNumber =  str =>  { 
-  if(str.length!==0){
-    var num = str.replace(/[^0-9]/g, ''); 
-  }else{
-    var num = 0;
-  }
-  
-  return num; 
-}
-
-let checkIfTaxAvailable = tax => {
-  let validatedTax = getNumber(tax);
-  if(Number.isNaN(validatedTax) === false && validatedTax <= 100 && validatedTax > 0){
-    var taxValue = tax;  
-  }else{
-    var taxValue = '---';
-  }
-  
-  return taxValue;
-}
-
-let applyTaxIfAvailable = (price, quantity, tax) => {
-  
-
-  let validatedTax = getNumber(tax);
-  if(Number.isNaN(validatedTax) === false && validatedTax <= 100){
-    let taxValue = '.'+validatedTax;
-    var itemPrice = (price * quantity) * (1 + taxValue);  
-  }else{
-    var itemPrice = (price * quantity) * (1 + taxValue);
-  }
-  
-  return itemPrice;
-}
-
-let companyAddress = (doc, address) => {
-  let str = address;
-  let chunks = str.match(/.{0,25}(\s|$)/g);
-  let first = 50;
-  chunks.forEach(function (i,x) {
-    doc.fontSize(10).text(chunks[x], 200, first, { align: "right" });
-    first = +first +  15;
-  });
+let incrementCustomerInformationTop = (value) => {
+    return value + 15;
 }
 
 module.exports = niceInvoice;
